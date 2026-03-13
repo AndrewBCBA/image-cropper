@@ -451,7 +451,7 @@ export function ImageCropper() {
                   </button>
                 </div>
 
-                <div className="flex justify-center pb-6 md:pb-8">
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pb-6 md:pb-8">
                   <button
                     onClick={getCropData}
                     className="flex items-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
@@ -459,6 +459,16 @@ export function ImageCropper() {
                     <Download className="w-6 h-6" />
                     Download Cropped Image
                   </button>
+                  <label className="flex items-center gap-3 bg-white hover:bg-gray-50 text-gray-700 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105 cursor-pointer border-2 border-gray-300">
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={onFileChange}
+                    />
+                    <Upload className="w-6 h-6" />
+                    Upload New Image
+                  </label>
                 </div>
               </>
             )}
