@@ -113,6 +113,13 @@ export function ImageCropper() {
   }, []);
 
   useEffect(() => {
+    if (cropperRef.current?.cropper && image) {
+      const newAspectRatio = dimensions.width / dimensions.height;
+      cropperRef.current.cropper.setAspectRatio(newAspectRatio);
+    }
+  }, [dimensions, image]);
+
+  useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !coffeeVisible) {
