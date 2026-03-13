@@ -324,49 +324,20 @@ export function ImageCropper() {
           <div className="px-4 md:px-8 pt-0 md:py-6">
             <div className="mb-8">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-                <div className="flex items-center justify-center md:justify-start gap-2 w-full md:w-auto">
-                  <div className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
-                    <p className="text-sm font-semibold text-gray-800">
-                      Output Size: {dimensions.width} x {dimensions.height} pixels
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-center md:justify-end gap-3 flex-wrap w-full md:w-auto">
-                  <button
-                    onClick={openQRModal}
-                    className="flex items-center gap-2 text-sm bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300 text-purple-700 px-3 py-2 rounded-lg transition-all shadow-sm border border-purple-200"
-                    title="Show QR code for current settings"
-                  >
-                    <QrCode className="w-4 h-4" />
-                    <span>QR Code</span>
-                  </button>
-                  <button
-                    onClick={openNewWindow}
-                    className="flex items-center gap-2 text-sm bg-gradient-to-r from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300 text-blue-700 px-3 py-2 rounded-lg transition-all shadow-sm border border-blue-200"
-                    title="Open in new window with current settings"
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                    <span>New Window</span>
-                  </button>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 bg-gray-50 px-3 py-2 rounded-md border-l-4 border-blue-200 hidden md:block">
-                Use URL parameters to customize dimensions: ?width=400&height=200. Click "New Window" to bookmark specific settings.
-              </p>
-              <div className="flex justify-center mt-3">
-                <div className="relative" ref={sizeDropdownRef}>
-                  <button
-                    onClick={toggleSizeDropdown}
-                    className="flex items-center gap-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg font-medium"
-                  >
-                    Select Size
-                    <svg className={`w-4 h-4 transition-transform ${showSizeDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+                <div className="flex items-center justify-center md:justify-start gap-3 flex-wrap w-full md:w-auto">
+                  <div className="relative" ref={sizeDropdownRef}>
+                    <button
+                      onClick={toggleSizeDropdown}
+                      className="flex items-center gap-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg font-medium"
+                    >
+                      Select Size
+                      <svg className={`w-4 h-4 transition-transform ${showSizeDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
 
-                  {showSizeDropdown && (
-                    <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-80 max-h-96 overflow-y-auto bg-white rounded-xl shadow-2xl border border-gray-200 z-50">
+                    {showSizeDropdown && (
+                      <div className="absolute left-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white rounded-xl shadow-2xl border border-gray-200 z-50">
                       <div className="py-2">
                         {/* Custom Option */}
                         <div className="mb-1">
@@ -444,8 +415,38 @@ export function ImageCropper() {
                       </div>
                     </div>
                   )}
+                  </div>
+
+                  {!isEditing && (
+                    <div className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
+                      <p className="text-sm font-semibold text-gray-800">
+                        Output: {dimensions.width} x {dimensions.height} px
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center justify-center md:justify-end gap-3 flex-wrap w-full md:w-auto">
+                  <button
+                    onClick={openQRModal}
+                    className="flex items-center gap-2 text-sm bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300 text-purple-700 px-3 py-2 rounded-lg transition-all shadow-sm border border-purple-200"
+                    title="Show QR code for current settings"
+                  >
+                    <QrCode className="w-4 h-4" />
+                    <span>QR Code</span>
+                  </button>
+                  <button
+                    onClick={openNewWindow}
+                    className="flex items-center gap-2 text-sm bg-gradient-to-r from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300 text-blue-700 px-3 py-2 rounded-lg transition-all shadow-sm border border-blue-200"
+                    title="Open in new window with current settings"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                    <span>New Window</span>
+                  </button>
                 </div>
               </div>
+              <p className="text-sm text-gray-500 bg-gray-50 px-3 py-2 rounded-md border-l-4 border-blue-200 hidden md:block">
+                Use URL parameters to customize dimensions: ?width=400&height=200. Click "New Window" to bookmark specific settings.
+              </p>
             </div>
 
             {!image ? (
