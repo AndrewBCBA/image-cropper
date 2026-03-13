@@ -72,11 +72,12 @@ export function ImageCropper() {
   const [isEditing, setIsEditing] = useState(true);
   const [tempDimensions, setTempDimensions] = useState({ width: 360, height: 175 });
   const [showQRModal, setShowQRModal] = useState(false);
-  const [showSocialDropdown, setShowSocialDropdown] = useState(false);
+  const [showSizeDropdown, setShowSizeDropdown] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<string>('custom');
   const [coffeeVisible, setCoffeeVisible] = useState(false);
   const cropperRef = useRef<any>(null);
   const coffeeRef = useRef<HTMLDivElement>(null);
-  const socialDropdownRef = useRef<HTMLDivElement>(null);
+  const sizeDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -143,19 +144,19 @@ export function ImageCropper() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (socialDropdownRef.current && !socialDropdownRef.current.contains(event.target as Node)) {
-        setShowSocialDropdown(false);
+      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target as Node)) {
+        setShowSizeDropdown(false);
       }
     };
 
-    if (showSocialDropdown) {
+    if (showSizeDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showSocialDropdown]);
+  }, [showSizeDropdown]);
 
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -227,13 +228,14 @@ export function ImageCropper() {
     setShowQRModal(false);
   };
 
-  const toggleSocialDropdown = () => {
-    setShowSocialDropdown(!showSocialDropdown);
+  const toggleSizeDropdown = () => {
+    setShowSizeDropdown(!showSizeDropdown);
   };
 
-  const selectSocialPreset = (preset: { width: number; height: number }) => {
-    setDimensions(preset);
-    setTempDimensions(preset);
+  const selectPreset = (preset: { name: string; width: number; height: number }, presetKey: string) => {
+    setDimensions({ width: preset.width, height: preset.height });
+    setTempDimensions({ width: preset.width, height: preset.height });
+    setSelectedPreset(presetKey);
     setIsEditing(false);
 
     const url = new URL(window.location.href);
@@ -241,7 +243,13 @@ export function ImageCropper() {
     url.searchParams.set('height', preset.height.toString());
     window.history.replaceState({}, '', url.toString());
 
-    setShowSocialDropdown(false);
+    setShowSizeDropdown(false);
+  };
+
+  const selectCustom = () => {
+    setSelectedPreset('custom');
+    setIsEditing(true);
+    setShowSizeDropdown(false);
   };
 
   const handleDimensionChange = (field: 'width' | 'height', value: string) => {
@@ -255,18 +263,14 @@ export function ImageCropper() {
   const applyDimensions = () => {
     if (tempDimensions.width > 0 && tempDimensions.height > 0) {
       setDimensions(tempDimensions);
-      setIsEditing(false);
+      setSelectedPreset('custom');
+      // Don't close editing mode for custom dimensions
       // Update URL
       const url = new URL(window.location.href);
       url.searchParams.set('width', tempDimensions.width.toString());
       url.searchParams.set('height', tempDimensions.height.toString());
       window.history.replaceState({}, '', url.toString());
     }
-  };
-
-  const cancelEdit = () => {
-    setTempDimensions(dimensions);
-    setIsEditing(false);
   };
 
   return (
@@ -321,56 +325,11 @@ export function ImageCropper() {
             <div className="mb-8">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
                 <div className="flex items-center justify-center md:justify-start gap-2 w-full md:w-auto">
-                  {isEditing ? (
-                    <div className="flex flex-col md:flex-row md:flex-wrap items-center gap-3 md:bg-gray-50 md:px-4 md:py-2 md:rounded-lg md:border w-full md:w-auto">
-                      <div className="flex flex-wrap items-center justify-center gap-3 w-full md:w-auto">
-                        <span className="text-sm font-semibold text-gray-700">Width:</span>
-                        <input
-                          type="number"
-                          value={tempDimensions.width}
-                          onChange={(e) => handleDimensionChange('width', e.target.value)}
-                          className="w-[60px] md:w-20 pl-2 pr-1 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          min="1"
-                        />
-                        <span className="text-sm font-semibold text-gray-700">Height:</span>
-                        <input
-                          type="number"
-                          value={tempDimensions.height}
-                          onChange={(e) => handleDimensionChange('height', e.target.value)}
-                          className="w-[60px] md:w-20 pl-2 pr-1 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          min="1"
-                        />
-                        <span className="text-sm font-medium text-gray-600 hidden md:inline">pixels</span>
-                      </div>
-                      <div className="flex justify-center gap-3 w-full md:w-auto">
-                        <button
-                          onClick={applyDimensions}
-                          className="px-4 py-2 text-sm bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
-                        >
-                          Apply
-                        </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="px-4 py-2 text-sm bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
-                      <p className="text-sm font-semibold text-gray-800">
-                        Output Size: {dimensions.width} x {dimensions.height} pixels
-                      </p>
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-100 rounded-md transition-all"
-                        title="Edit dimensions"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
+                    <p className="text-sm font-semibold text-gray-800">
+                      Output Size: {dimensions.width} x {dimensions.height} pixels
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-center justify-center md:justify-end gap-3 flex-wrap w-full md:w-auto">
                   <button
@@ -395,20 +354,72 @@ export function ImageCropper() {
                 Use URL parameters to customize dimensions: ?width=400&height=200. Click "New Window" to bookmark specific settings.
               </p>
               <div className="flex justify-center mt-3">
-                <div className="relative" ref={socialDropdownRef}>
+                <div className="relative" ref={sizeDropdownRef}>
                   <button
-                    onClick={toggleSocialDropdown}
+                    onClick={toggleSizeDropdown}
                     className="flex items-center gap-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg font-medium"
                   >
-                    Social Media Presets
-                    <svg className={`w-4 h-4 transition-transform ${showSocialDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    Select Size
+                    <svg className={`w-4 h-4 transition-transform ${showSizeDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
 
-                  {showSocialDropdown && (
+                  {showSizeDropdown && (
                     <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-80 max-h-96 overflow-y-auto bg-white rounded-xl shadow-2xl border border-gray-200 z-50">
                       <div className="py-2">
+                        {/* Custom Option */}
+                        <div className="mb-1">
+                          <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+                            <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Custom</p>
+                          </div>
+                          <div className="py-1">
+                            <button
+                              onClick={selectCustom}
+                              className="w-full text-left px-6 py-2.5 hover:bg-blue-50 transition-colors group"
+                            >
+                              <span className="text-sm text-gray-700 group-hover:text-blue-700 font-medium">Custom Dimensions</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Custom Dimension Inputs - Show when custom is selected */}
+                        {isEditing && selectedPreset === 'custom' && (
+                          <div className="px-4 py-3 bg-blue-50 border-b border-blue-100">
+                            <div className="flex flex-col gap-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-gray-700 w-14">Width:</span>
+                                <input
+                                  type="number"
+                                  value={tempDimensions.width}
+                                  onChange={(e) => handleDimensionChange('width', e.target.value)}
+                                  className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  min="1"
+                                />
+                                <span className="text-xs text-gray-500">px</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-gray-700 w-14">Height:</span>
+                                <input
+                                  type="number"
+                                  value={tempDimensions.height}
+                                  onChange={(e) => handleDimensionChange('height', e.target.value)}
+                                  className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  min="1"
+                                />
+                                <span className="text-xs text-gray-500">px</span>
+                              </div>
+                              <button
+                                onClick={applyDimensions}
+                                className="w-full px-3 py-2 text-sm bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm font-medium"
+                              >
+                                Apply Custom Size
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Social Media Presets */}
                         {Object.entries(SOCIAL_MEDIA_PRESETS).map(([platform, presets]) => (
                           <div key={platform} className="mb-1">
                             <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
@@ -418,7 +429,7 @@ export function ImageCropper() {
                               {presets.map((preset) => (
                                 <button
                                   key={`${platform}-${preset.name}`}
-                                  onClick={() => selectSocialPreset(preset)}
+                                  onClick={() => selectPreset(preset, `${platform}-${preset.name}`)}
                                   className="w-full text-left px-6 py-2.5 hover:bg-blue-50 transition-colors flex justify-between items-center group"
                                 >
                                   <span className="text-sm text-gray-700 group-hover:text-blue-700 font-medium">{preset.name}</span>
