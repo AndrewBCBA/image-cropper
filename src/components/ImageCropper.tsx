@@ -3,6 +3,67 @@ import Cropper from 'react-cropper';
 import "cropperjs/dist/cropper.css";
 import { Upload, Maximize2, MinusSquare, PlusSquare, Download, Copy, Check, CreditCard as Edit3, Crop, QrCode, X, ArrowBigRight } from 'lucide-react';
 
+const SOCIAL_MEDIA_PRESETS = {
+  Instagram: [
+    { name: 'Profile Photo', width: 320, height: 320 },
+    { name: 'Square Post', width: 1080, height: 1080 },
+    { name: 'Portrait Post', width: 1080, height: 1350 },
+    { name: 'Landscape Post', width: 1080, height: 566 },
+    { name: 'Story / Reel Cover', width: 1080, height: 1920 },
+    { name: 'Highlight Cover', width: 1080, height: 1080 },
+  ],
+  Facebook: [
+    { name: 'Profile Photo', width: 400, height: 400 },
+    { name: 'Page Cover', width: 820, height: 312 },
+    { name: 'Group Cover', width: 1640, height: 856 },
+    { name: 'Post Image', width: 1200, height: 630 },
+    { name: 'Story', width: 1080, height: 1920 },
+    { name: 'Event Cover', width: 1920, height: 1005 },
+  ],
+  'X (Twitter)': [
+    { name: 'Profile Photo', width: 400, height: 400 },
+    { name: 'Header / Banner', width: 1500, height: 500 },
+    { name: 'Post Image', width: 1600, height: 900 },
+    { name: 'Link Preview Card', width: 1200, height: 628 },
+  ],
+  LinkedIn: [
+    { name: 'Profile Photo', width: 400, height: 400 },
+    { name: 'Personal Cover', width: 1584, height: 396 },
+    { name: 'Company Logo', width: 300, height: 300 },
+    { name: 'Company Cover', width: 1128, height: 191 },
+    { name: 'Post Image', width: 1200, height: 627 },
+    { name: 'Article Header', width: 1200, height: 644 },
+  ],
+  YouTube: [
+    { name: 'Channel Profile', width: 800, height: 800 },
+    { name: 'Channel Banner', width: 2560, height: 1440 },
+    { name: 'Thumbnail', width: 1280, height: 720 },
+    { name: 'Shorts Thumbnail', width: 1080, height: 1920 },
+  ],
+  TikTok: [
+    { name: 'Profile Photo', width: 200, height: 200 },
+    { name: 'Video / Post', width: 1080, height: 1920 },
+    { name: 'Cover Image', width: 1080, height: 1920 },
+  ],
+  Pinterest: [
+    { name: 'Profile Photo', width: 165, height: 165 },
+    { name: 'Pin Image', width: 1000, height: 1500 },
+    { name: 'Board Cover', width: 600, height: 600 },
+  ],
+  Snapchat: [
+    { name: 'Story / Post', width: 1080, height: 1920 },
+    { name: 'Ad Image', width: 1080, height: 1920 },
+  ],
+  'Common Universal Formats': [
+    { name: 'Avatar / Profile Image', width: 512, height: 512 },
+    { name: 'Website Hero', width: 1920, height: 1080 },
+    { name: 'Blog Featured Image', width: 1200, height: 630 },
+    { name: 'Square Icon', width: 1024, height: 1024 },
+    { name: 'Email Header', width: 600, height: 200 },
+    { name: 'Presentation Slide', width: 1920, height: 1080 },
+  ],
+};
+
 export function ImageCropper() {
   const [image, setImage] = useState<string>('');
   const [originalFileName, setOriginalFileName] = useState<string>('');
@@ -11,6 +72,7 @@ export function ImageCropper() {
   const [isEditing, setIsEditing] = useState(true);
   const [tempDimensions, setTempDimensions] = useState({ width: 360, height: 175 });
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showSocialModal, setShowSocialModal] = useState(false);
   const [coffeeVisible, setCoffeeVisible] = useState(false);
   const cropperRef = useRef<any>(null);
   const coffeeRef = useRef<HTMLDivElement>(null);
@@ -139,6 +201,28 @@ export function ImageCropper() {
 
   const closeQRModal = () => {
     setShowQRModal(false);
+  };
+
+  const openSocialModal = () => {
+    setShowSocialModal(true);
+  };
+
+  const closeSocialModal = () => {
+    setShowSocialModal(false);
+  };
+
+  const selectSocialPreset = (preset: { width: number; height: number }) => {
+    setDimensions(preset);
+    setTempDimensions(preset);
+    setIsEditing(false);
+
+    // Update URL
+    const url = new URL(window.location.href);
+    url.searchParams.set('width', preset.width.toString());
+    url.searchParams.set('height', preset.height.toString());
+    window.history.replaceState({}, '', url.toString());
+
+    closeSocialModal();
   };
 
   const handleDimensionChange = (field: 'width' | 'height', value: string) => {
@@ -291,6 +375,18 @@ export function ImageCropper() {
               <p className="text-sm text-gray-500 bg-gray-50 px-3 py-2 rounded-md border-l-4 border-blue-200 hidden md:block">
                 Use URL parameters to customize dimensions: ?width=400&height=200. Click "New Window" to bookmark specific settings.
               </p>
+              <div className="text-center mt-3">
+                <p className="text-sm text-gray-600">
+                  Cropping for{' '}
+                  <button
+                    onClick={openSocialModal}
+                    className="text-blue-600 hover:text-blue-700 font-semibold underline hover:no-underline"
+                  >
+                    Social Media
+                  </button>
+                  ?
+                </p>
+              </div>
             </div>
 
             {!image ? (
@@ -396,6 +492,48 @@ export function ImageCropper() {
                 <p className="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
                   {dimensions.width} x {dimensions.height} pixels
                 </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Social Media Presets Modal */}
+        {showSocialModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 md:p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto shadow-2xl border border-white/20">
+              <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b">
+                <h3 className="text-2xl font-bold text-gray-800">Social Media Image Sizes</h3>
+                <button
+                  onClick={closeSocialModal}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {Object.entries(SOCIAL_MEDIA_PRESETS).map(([platform, presets]) => (
+                  <div key={platform} className="border border-gray-200 rounded-lg p-4 bg-gradient-to-r from-gray-50 to-white">
+                    <h4 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      {platform}
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {presets.map((preset) => (
+                        <button
+                          key={`${platform}-${preset.name}`}
+                          onClick={() => selectSocialPreset(preset)}
+                          className="text-left px-4 py-3 bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all shadow-sm hover:shadow-md"
+                        >
+                          <div className="font-semibold text-gray-800 text-sm">{preset.name}</div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {preset.width} × {preset.height} pixels
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
