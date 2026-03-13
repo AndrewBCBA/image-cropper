@@ -72,10 +72,11 @@ export function ImageCropper() {
   const [isEditing, setIsEditing] = useState(true);
   const [tempDimensions, setTempDimensions] = useState({ width: 360, height: 175 });
   const [showQRModal, setShowQRModal] = useState(false);
-  const [showSocialModal, setShowSocialModal] = useState(false);
+  const [showSocialDropdown, setShowSocialDropdown] = useState(false);
   const [coffeeVisible, setCoffeeVisible] = useState(false);
   const cropperRef = useRef<any>(null);
   const coffeeRef = useRef<HTMLDivElement>(null);
+  const socialDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -139,6 +140,22 @@ export function ImageCropper() {
       }
     };
   }, [coffeeVisible]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (socialDropdownRef.current && !socialDropdownRef.current.contains(event.target as Node)) {
+        setShowSocialDropdown(false);
+      }
+    };
+
+    if (showSocialDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSocialDropdown]);
 
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,12 +227,8 @@ export function ImageCropper() {
     setShowQRModal(false);
   };
 
-  const openSocialModal = () => {
-    setShowSocialModal(true);
-  };
-
-  const closeSocialModal = () => {
-    setShowSocialModal(false);
+  const toggleSocialDropdown = () => {
+    setShowSocialDropdown(!showSocialDropdown);
   };
 
   const selectSocialPreset = (preset: { width: number; height: number }) => {
@@ -223,13 +236,12 @@ export function ImageCropper() {
     setTempDimensions(preset);
     setIsEditing(false);
 
-    // Update URL
     const url = new URL(window.location.href);
     url.searchParams.set('width', preset.width.toString());
     url.searchParams.set('height', preset.height.toString());
     window.history.replaceState({}, '', url.toString());
 
-    closeSocialModal();
+    setShowSocialDropdown(false);
   };
 
   const handleDimensionChange = (field: 'width' | 'height', value: string) => {
@@ -382,17 +394,46 @@ export function ImageCropper() {
               <p className="text-sm text-gray-500 bg-gray-50 px-3 py-2 rounded-md border-l-4 border-blue-200 hidden md:block">
                 Use URL parameters to customize dimensions: ?width=400&height=200. Click "New Window" to bookmark specific settings.
               </p>
-              <div className="text-center mt-3">
-                <p className="text-sm text-gray-600">
-                  Cropping for{' '}
+              <div className="flex justify-center mt-3">
+                <div className="relative" ref={socialDropdownRef}>
                   <button
-                    onClick={openSocialModal}
-                    className="text-blue-600 hover:text-blue-700 font-semibold underline hover:no-underline"
+                    onClick={toggleSocialDropdown}
+                    className="flex items-center gap-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg font-medium"
                   >
-                    Social Media
+                    Social Media Presets
+                    <svg className={`w-4 h-4 transition-transform ${showSocialDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </button>
-                  ?
-                </p>
+
+                  {showSocialDropdown && (
+                    <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-80 max-h-96 overflow-y-auto bg-white rounded-xl shadow-2xl border border-gray-200 z-50">
+                      <div className="py-2">
+                        {Object.entries(SOCIAL_MEDIA_PRESETS).map(([platform, presets]) => (
+                          <div key={platform} className="mb-1">
+                            <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+                              <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">{platform}</p>
+                            </div>
+                            <div className="py-1">
+                              {presets.map((preset) => (
+                                <button
+                                  key={`${platform}-${preset.name}`}
+                                  onClick={() => selectSocialPreset(preset)}
+                                  className="w-full text-left px-6 py-2.5 hover:bg-blue-50 transition-colors flex justify-between items-center group"
+                                >
+                                  <span className="text-sm text-gray-700 group-hover:text-blue-700 font-medium">{preset.name}</span>
+                                  <span className="text-xs text-gray-500 group-hover:text-blue-600 font-mono">
+                                    {preset.width} × {preset.height}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -509,48 +550,6 @@ export function ImageCropper() {
                 <p className="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
                   {dimensions.width} x {dimensions.height} pixels
                 </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Social Media Presets Modal */}
-        {showSocialModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-6 md:p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto shadow-2xl border border-white/20">
-              <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b">
-                <h3 className="text-2xl font-bold text-gray-800">Social Media Image Sizes</h3>
-                <button
-                  onClick={closeSocialModal}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X className="w-6 h-6 text-gray-500" />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                {Object.entries(SOCIAL_MEDIA_PRESETS).map(([platform, presets]) => (
-                  <div key={platform} className="border border-gray-200 rounded-lg p-4 bg-gradient-to-r from-gray-50 to-white">
-                    <h4 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                      {platform}
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {presets.map((preset) => (
-                        <button
-                          key={`${platform}-${preset.name}`}
-                          onClick={() => selectSocialPreset(preset)}
-                          className="text-left px-4 py-3 bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all shadow-sm hover:shadow-md"
-                        >
-                          <div className="font-semibold text-gray-800 text-sm">{preset.name}</div>
-                          <div className="text-xs text-gray-600 mt-1">
-                            {preset.width} × {preset.height} pixels
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
