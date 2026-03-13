@@ -176,11 +176,11 @@ export function ImageCropper() {
                 <Crop className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent leading-normal py-2">
-                Image Cropper
+                EasyCrop.app
               </h1>
             </div>
             <p className="text-xl text-gray-700 mb-4 font-medium px-4">
-              Image Cropper is a simple, focused tool built to do one thing exceptionally well.
+              EasyCrop.app is a simple, focused tool built to do one thing exceptionally well.
             </p>
             <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed mb-6 md:mb-8 px-4">
               Crop and resize your images to exact pixel dimensions quickly and accurately.
@@ -391,7 +391,7 @@ export function ImageCropper() {
                   />
                 </div>
                 <p className="text-base font-medium text-gray-700 mb-2">
-                  Scan to open Image Cropper with current settings:
+                  Scan to open EasyCrop.app with current settings:
                 </p>
                 <p className="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
                   {dimensions.width} x {dimensions.height} pixels
@@ -403,7 +403,7 @@ export function ImageCropper() {
 
         <div ref={coffeeRef} className="mt-4 text-center">
           <p className="text-lg text-gray-700 mb-4 font-medium">
-            Enjoying Image Cropper?
+            Enjoying EasyCrop.app?
           </p>
           <a href="https://www.buymeacoffee.com/productcoach" target="_blank" rel="noopener noreferrer" className="inline-block">
             <img
